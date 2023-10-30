@@ -49,41 +49,50 @@ void citesteExpresie(void)
 }
 bool valideazaFactor(void)
 {
-	int r = 1;
+	bool ok;
 	if (e[poz] == '(') // factorul e o expresie intre paranteze
 	{
 		ND++; // numar o paranteza deschisa care nu e inchisa
 		poz++; // trec peste (
-		r = valideazaExpresie(); // validez expresia din paranteza
-		if (!r)
-		{
-			return r;
-		}
+		if (!valideazaExpresie()) return 0;
 		if (e[poz] != ')') // paranteza nu este inchisa corect
 		{
 			fout << "Eroare! Pe pozitia " << poz << " este necesara )";
-			r = 0;
+			return 0;
 		}
-		else
-		{
-			poz++; // trc peste )
-			ND--; // scad numarul de paranteze ramase deschise
-		}
-	}
-	else if (!cifra(e[poz]) && !litera(e[poz])) 
-	{
-		fout << "Eroare! Pe pozitia " << poz << " trebuie operand";
-		r = 0;
+		poz++; // trc peste )
+		ND--; // scad numarul de paranteze ramase deschise
 	}
 	else
 	{
-		poz++; // trec peste factor
+		if (!cifra(e[poz]) && !litera(e[poz]))
+		{
+			fout << "Eroare! Pe pozitia " << poz << " trebuie operand";
+			return 0;
+		}
+		ok = 1;
+		if (cifra(e[poz]))
+		{
+			while (cifra(e[poz])) poz++;
+			if (litera(e[poz])) ok = 0;
+		}
+		else
+		{
+			while (litera(e[poz])) poz++;
+			if (cifra(e[poz])) ok = 0;
+		}
+		if (!ok)
+		{
+			fout << "Eroare! Pe pozitia " << poz << " trebuie operator";
+			return 0;
+
+		}
 	}
-	return r;
+	return 1;
 }
 bool valideazaTermen(void)
 {
-	int r = valideazaFactor(); // validez primul factor din termen
+	bool r = valideazaFactor(); // validez primul factor din termen
 	while (r && poz < lg && e[poz] == '*') // mai urmeaza factori
 	{
 		poz++; // trec peste *
@@ -93,7 +102,7 @@ bool valideazaTermen(void)
 }
 bool valideazaExpresie(void)
 {
-	int r = valideazaTermen(); // validez primul termen
+	bool r = valideazaTermen(); // validez primul termen
 	while (r && poz < lg && e[poz] == '+') // mai urmeaza termeni
 	{
 		poz++; // trec peste +
