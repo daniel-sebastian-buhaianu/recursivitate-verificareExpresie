@@ -1,62 +1,62 @@
-#include <iostream>
+#include <fstream>
 #include <cstring>
 #define LGMAX 202
 using namespace std;
-// variabile globale
-char e[LGMAX];
+ifstream fin("vexp.in");
+ofstream fout("vexp.out");
+char e[LGMAX], op[] = "0123456789abcdefghijklmnopqrstuvwxyz";
 int lg, i, ND;
-// functii ajutatoare
-bool litera(char);
-bool cifra(char);
-bool valideazaFactor();
-bool valideazaTermen();
-bool valideazaExpresie();
-void transformaMajusculeInMinuscule();
-void citesteExpresie();
-// functia principala
+int ValidareExpresie();
+int ValidareTermen();
+int ValidareFactor();
 int main()
 {
-	citesteExpresie();
-	transformaMajusculeInMinuscule();
-	if (valideazaExpresie())
+	fin.getline(e, LGMAX);
+	fin.close();
+	// transform majusculele in minuscule si determin lungimea
+	for (lg = 0; e[lg]; lg++)
 	{
-		cout << "DA";
+		if (e[lg] >= 'A' && e[lg] <= 'Z')
+		{
+			e[lg] = e[lg]-'A'+'a';
+		}
 	}
+	if (ValidareExpresie())
+	{
+		fout << "Expresia este sintactic corecta!\n";
+	}
+	fout.close();
 	return 0;
 }
-bool litera (char c)
+int ValidareFactor()
 {
-	return c >= 'a' && c <= 'z';
-}
-bool cifra(char c)
-{
-	return c >= '0' && c <= '9';
-}
-bool valideazaFactor()
-{
-	bool r = 1;
+	int r = 1;
 	if (e[i] == '(') // factorul e o expresie intre paranteze
 	{
 		ND++; // numar o paranteza deschisa care nu e inchisa
 		i++; // trec peste (
-		r = valideazaExpresie(); // validez expresia din paranteza
-		if (!r) return r; // expresie incorecta
-		if (e[i] != ')') // paranteza este inchisa corect?
+		r = ValidareExpresie(); // validez expresia din paranteza
+		if (!r)
 		{
-			cout << "Eroare! Pe pozitia " << i << " este necesara )";
+			return r;
+		}
+		if (e[i] != ')') // paranteza nu este inchisa corect
+		{
+			fout << "Eroare! Pe pozitia " << i << " este necesara )";
 			r = 0;
 		}
 		else
 		{
-			i++; // trec peste )
+			i++; // trc peste )
 			ND--; // scad numarul de paranteze ramase deschise
 		}
 	}
-	else // verific daca factorul este o litera sau o cifra
+	else 
 	{
-		if (!cifra(e[i]) && !litera(e[i]))
+		// verific daca factorul este o litera sau o cifra
+		if (!strchr(op, e[i]))
 		{
-			cout << "Eroare! Pe pozitia " << i << " trebuie operand";
+			fout << "Eroare! Pe pozitia " << i << " trebuie operand";
 			r = 0;
 		}
 		else
@@ -66,46 +66,31 @@ bool valideazaFactor()
 	}
 	return r;
 }
-bool valideazaTermen()
+int ValidareTermen()
 {
-	bool r = valideazaFactor(); // validez primul factor din termen
+	int r = ValidareFactor(); // validez primul factor din termen
 	while (r && i < lg && e[i] == '*') // mai urmeaza factori
 	{
 		i++; // trec peste *
-		r = valideazaFactor();
+		r = ValidareFactor();
 	}
 	return r;
 }
-bool valideazaExpresie()
+int ValidareExpresie()
 {
-	bool r = valideazaTermen(); // validez primul termen
+	int r = ValidareTermen(); // validez primul termen
 	while (r && i < lg && e[i] == '+') // mai urmeaza termeni
 	{
 		i++; // trec peste +
-		r = valideazaTermen();
+		r = ValidareTermen();
 	}
 	if (r && i < lg)
 	{
 		if (e[i] != ')' || e[i] == ')' && !ND)
 		{
-			cout << "Eroare!";
+			fout << "Eroare!";
 			r = 0;
 		}
 	}
 	return r;
-}
-void transformaMajusculeInMinuscule()
-{
-	for (lg = 0; e[lg]; lg++)
-	{
-		if (e[lg] >= 'A' && e[lg] <= 'Z')
-		{
-			e[lg] = e[lg]-'A'+'a';
-		}
-	}
-}
-void citesteExpresie()
-{
-	cout << "Introduceti expresia: ";
-	cin.getline(e, LGMAX);
 }
