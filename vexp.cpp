@@ -2,91 +2,106 @@
 #include <cstring>
 #define LGMAX 202
 using namespace std;
+// fisiere intrare/iesire
 ifstream fin("vexp.in");
 ofstream fout("vexp.out");
-char e[LGMAX], op[] = "0123456789abcdefghijklmnopqrstuvwxyz";
-int lg, i, ND;
-int ValidareExpresie();
-int ValidareTermen();
-int ValidareFactor();
-int main()
+// variabile globale
+char e[LGMAX];
+int lg, poz, ND;
+// functii ajutatoare
+bool cifra(char);
+bool litera(char);
+bool valideazaExpresie(void);
+bool valideazaTermen(void);
+bool valideazaFactor(void);
+void citesteExpresie(void);
+// functia principala
+int main(void)
 {
-	fin.getline(e, LGMAX);
-	fin.close();
-	// transform majusculele in minuscule si determin lungimea
-	for (lg = 0; e[lg]; lg++)
-	{
-		if (e[lg] >= 'A' && e[lg] <= 'Z')
-		{
-			e[lg] = e[lg]-'A'+'a';
-		}
-	}
-	if (ValidareExpresie())
+	citesteExpresie();
+	if (valideazaExpresie())
 	{
 		fout << "Expresia este sintactic corecta!\n";
 	}
 	fout.close();
 	return 0;
 }
-int ValidareFactor()
+void citesteExpresie(void)
+{
+	fin.getline(e, LGMAX);
+	fin.close();
+	// transform majusculele in minuscule
+	// elimin toate spatiile si determin lungimea sirului
+	char aux[LGMAX], *c;
+	for (lg = 0, c = e; *c; c++)
+	{
+		if (*c >= 'A' && *c <= 'Z')
+		{
+			*c = *c-'A'+'a';
+		}
+		if (*c != ' ')
+		{
+			aux[lg++] = *c;
+		}
+	}
+	aux[lg] = 0;
+	strcpy(e, aux);
+}
+bool valideazaFactor(void)
 {
 	int r = 1;
-	if (e[i] == '(') // factorul e o expresie intre paranteze
+	if (e[poz] == '(') // factorul e o expresie intre paranteze
 	{
 		ND++; // numar o paranteza deschisa care nu e inchisa
-		i++; // trec peste (
-		r = ValidareExpresie(); // validez expresia din paranteza
+		poz++; // trec peste (
+		r = valideazaExpresie(); // validez expresia din paranteza
 		if (!r)
 		{
 			return r;
 		}
-		if (e[i] != ')') // paranteza nu este inchisa corect
+		if (e[poz] != ')') // paranteza nu este inchisa corect
 		{
-			fout << "Eroare! Pe pozitia " << i << " este necesara )";
+			fout << "Eroare! Pe pozitia " << poz << " este necesara )";
 			r = 0;
 		}
 		else
 		{
-			i++; // trc peste )
+			poz++; // trc peste )
 			ND--; // scad numarul de paranteze ramase deschise
 		}
 	}
-	else 
+	else if (!cifra(e[poz]) && !litera(e[poz])) 
 	{
-		// verific daca factorul este o litera sau o cifra
-		if (!strchr(op, e[i]))
-		{
-			fout << "Eroare! Pe pozitia " << i << " trebuie operand";
-			r = 0;
-		}
-		else
-		{
-			i++; // trec peste factor
-		}
+		fout << "Eroare! Pe pozitia " << poz << " trebuie operand";
+		r = 0;
+	}
+	else
+	{
+		poz++; // trec peste factor
 	}
 	return r;
 }
-int ValidareTermen()
+bool valideazaTermen(void)
 {
-	int r = ValidareFactor(); // validez primul factor din termen
-	while (r && i < lg && e[i] == '*') // mai urmeaza factori
+	int r = valideazaFactor(); // validez primul factor din termen
+	while (r && poz < lg && e[poz] == '*') // mai urmeaza factori
 	{
-		i++; // trec peste *
-		r = ValidareFactor();
+		poz++; // trec peste *
+		r = valideazaFactor();
 	}
 	return r;
 }
-int ValidareExpresie()
+bool valideazaExpresie(void)
 {
-	int r = ValidareTermen(); // validez primul termen
-	while (r && i < lg && e[i] == '+') // mai urmeaza termeni
+	int r = valideazaTermen(); // validez primul termen
+	while (r && poz < lg && e[poz] == '+') // mai urmeaza termeni
 	{
-		i++; // trec peste +
-		r = ValidareTermen();
+		poz++; // trec peste +
+		r = valideazaTermen();
 	}
-	if (r && i < lg)
+	if (r && poz < lg)
 	{
-		if (e[i] != ')' || e[i] == ')' && !ND)
+		if (e[poz] != ')' || e[poz] == ')' && !ND)
 		{
 			fout << "Eroare!";
 			r = 0;
@@ -94,4 +109,11 @@ int ValidareExpresie()
 	}
 	return r;
 }
-// solutia oficiala
+bool litera(char c)
+{
+	return c >= 'a' && c <= 'z';
+}
+bool cifra(char c)
+{
+	return c >= '0' && c <= '9';
+}
